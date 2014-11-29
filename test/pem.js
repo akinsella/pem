@@ -8,6 +8,30 @@ try {
 
 exports["General Tests"] = {
 
+    "Create default sized Private key with password": function(test){
+        pem.createPrivateKey({ keyPassword: 'some_password', encryptAlgorithm: 'aes128' }, function(error, data){
+            var key = (data && data.key || "").toString();
+            test.ifError(error);
+            test.ok(key);
+            test.ok(key.match(/^\n*\-\-\-\-\-BEGIN RSA PRIVATE KEY\-\-\-\-\-\n/));
+            test.ok(key.match(/\n\-\-\-\-\-END RSA PRIVATE KEY\-\-\-\-\-\n*$/));
+            test.ok(key.trim().length > 850 && key.trim().length < 1900);
+            test.ok(fs.readdirSync("./tmp").length == 0);
+
+            pem.getPublicKey(key, { password: 'some_password' }, function(error, data){
+                var pubkey = (data && data.publicKey || "").toString();
+                test.ifError(error);
+                test.ok(pubkey);
+
+                test.ok(pubkey.match(/^\n*\-\-\-\-\-BEGIN PUBLIC KEY\-\-\-\-\-\n/));
+                test.ok(pubkey.match(/\n\-\-\-\-\-END PUBLIC KEY\-\-\-\-\-\n*$/));
+                test.ok(fs.readdirSync("./tmp").length == 0);
+
+                test.done();
+            });
+        });
+    },
+
     "Create default sized Private key": function(test){
         pem.createPrivateKey(function(error, data){
             var key = (data && data.key || "").toString();
